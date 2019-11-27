@@ -6,6 +6,21 @@ from sklearn.model_selection import KFold
 from sklearn.utils import shuffle
 import json
 import socket
+from threading import Thread
+
+class ThreadWithReturnValue(Thread):
+    def __init__(self, group=None, target=None, name=None,
+                 args=(), kwargs={}, Verbose=None):
+        Thread.__init__(self, group, target, name, args, kwargs)
+        self._return = None
+    def run(self):
+        print(type(self._target))
+        if self._target is not None:
+            self._return = self._target(*self._args,
+                                                **self._kwargs)
+    def join(self, *args):
+        Thread.join(self, *args)
+        return self._return
 
 def loadcsv():
 
@@ -97,12 +112,12 @@ def GArun(population,bias, ite, train_index,test_index):
     scoresfinalGA = []
     chromofinaisGA = []
 
-    scores = sendClient(population,bias,train_index,test_index)
+    scores = creatThreadPool(population,bias,train_index,test_index)
 
     for x in range(ite):
 
         population = newgentournement(scores, population)
-        scores = sendClient(population, bias, train_index, test_index)
+        scores = creatThreadPool(population, bias, train_index, test_index)
 
         scoresfinalGA.append(scores[np.argmax(scores)])
         chromofinaisGA.append(population[np.argmax(scores)])
@@ -111,10 +126,28 @@ def GArun(population,bias, ite, train_index,test_index):
 
     return scoresfinalGA, chromofinaisGA, tempototalfimGA - tempototalinicioGA
 
-def sendClient(pesos,bias,train_index,test_index):
 
-    PORT = 5000
-    SERVER_IP = '192.168.25.209'
+def creatThreadPool(pesos,bias,train_index,test_index):
+
+    p1,p2 = np.split(pesos,2)
+    b1,b2 = np.split(bias,2)
+
+    PORT1 = 5000
+    PORT2 = 5001
+    SERVER_IP1 = '192.168.25.209'
+    SERVER_IP2 = '192.168.25.209'
+
+    t1 = ThreadWithReturnValue(target=sendClient,args=(p1,b1,train_index,test_index,PORT1,SERVER_IP1,))
+    t2 = ThreadWithReturnValue(target=sendClient,args=(p2,b2,train_index,test_index,PORT2,SERVER_IP2,))
+    t1.start()
+    t2.start()
+    retorno = t1.join()
+    retorno2 = t2.join()
+
+    return np.concatenate((retorno,retorno2))
+
+def sendClient(pesos,bias,train_index,test_index,PORT,SERVER_IP):
+
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((SERVER_IP,PORT))
 

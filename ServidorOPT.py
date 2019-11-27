@@ -18,12 +18,10 @@ def loadcsv():
 
     return np.array(df_images_noclass),np.array(df_images_class)
 
-def startconec(listensize):
+def startconec(listensize,PORT,IP):
 
-    PORT = 5000
-    SERVER_IP = '192.168.43.206'
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind((SERVER_IP, PORT))
+    s.bind((IP, PORT))
     s.listen(listensize)
 
     return s
