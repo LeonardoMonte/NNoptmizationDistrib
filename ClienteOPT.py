@@ -200,5 +200,13 @@ def experimentosdistribuido(imagesnoclass, imagesclass, ite,iteKfold,popu,kvalue
 
 X,Y = loadcsv()
 
+time1 = time.time()
+timemedioGA = experimentosdistribuido(X,Y,10,2,20,10)
+time2 = time.time()
 
-#timemedioGA = experimentosdistribuido(X,Y,10,2,20,10)
+print("Tempo total GA")
+print(timemedioGA)
+print("Tempo medio GA")
+print(np.mean(timemedioGA))
+print("Tempo total experimento distribuido")
+print(time2-time1)
