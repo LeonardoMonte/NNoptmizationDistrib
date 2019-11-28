@@ -4,6 +4,7 @@ from sklearn.neural_network import MLPClassifier
 import pandas as pd
 import socket
 import json
+from json import JSONDecodeError
 
 model = MLPClassifier(hidden_layer_sizes=(6),activation='relu',solver='lbfgs',max_iter=20)
 
@@ -49,12 +50,16 @@ def fitnessGA(chromossome,bias, Xtrain, ytrain, Xval, yval):
 
     return retorno
 
+save = []
+
+
 def wait(s,noclasse,classe):
 
     while 1:
         try:
+
             conn, addr = s.accept()
-            recev = json.loads(conn.recv(90000))
+            recev = json.loads(conn.recv(9000000))
             #if "stop" in recev: break
 
 
@@ -69,20 +74,26 @@ def wait(s,noclasse,classe):
             for p,b in zip(pesos,bias):
                 score.append(fitnessGA(p,b,X_train,y_train,X_test,y_test))
 
+            save.append(score)
             print(score)
             data = json.dumps({"back":score})
             conn.send(data.encode())
 
 
-        except Exception as ex:
+        except JSONDecodeError as ex:
 
             template = "An exception of type {0} occurred. Arguments:\n{1!r}"
             message = template.format(type(ex).__name__, ex.args)
             print(message)
-
+            print(len(save[0]))
+            data = json.dumps({"back":save[0]})
+            conn.send(data.encode())
+            #wait(s, noclasse, classe)
 
     conn.close()
 
+
+
 noclasse,classe = loadcsv()
-s = startconec(1000)
+s = startconec(1000, 5001, '192.168.43.206')
 wait(s,noclasse,classe)

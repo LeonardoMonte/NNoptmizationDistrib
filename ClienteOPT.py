@@ -14,7 +14,6 @@ class ThreadWithReturnValue(Thread):
         Thread.__init__(self, group, target, name, args, kwargs)
         self._return = None
     def run(self):
-        print(type(self._target))
         if self._target is not None:
             self._return = self._target(*self._args,
                                                 **self._kwargs)
@@ -126,7 +125,6 @@ def GArun(population,bias, ite, train_index,test_index):
 
     return scoresfinalGA, chromofinaisGA, tempototalfimGA - tempototalinicioGA
 
-
 def creatThreadPool(pesos,bias,train_index,test_index):
 
     p1,p2 = np.split(pesos,2)
@@ -155,6 +153,7 @@ def sendClient(pesos,bias,train_index,test_index,PORT,SERVER_IP):
     bias = [b.tolist() for b in bias]
 
     tosend = json.dumps({"pesos":pesos,"bias":bias,"train_index":train_index.tolist(),"test_index":test_index.tolist()})
+
     s.send(tosend.encode())
 
     back = json.loads(s.recv(4096))
@@ -200,4 +199,6 @@ def experimentosdistribuido(imagesnoclass, imagesclass, ite,iteKfold,popu,kvalue
     return timeGA
 
 X,Y = loadcsv()
-timemedioGA = experimentosdistribuido(X,Y,10,2,10,10)
+
+
+#timemedioGA = experimentosdistribuido(X,Y,10,2,20,10)
