@@ -110,20 +110,28 @@ def GArun(population,bias, ite, train_index,test_index):
     tempototalinicioGA = time.time()
     scoresfinalGA = []
     chromofinaisGA = []
+    timefitness = []
 
+    timefitness1 = time.time()
     scores = creatThreadPool(population,bias,train_index,test_index)
+    timefitness2 = time.time()
+    timefitness.append(timefitness2-timefitness1)
 
     for x in range(ite):
 
         population = newgentournement(scores, population)
+
+        timefitness1 = time.time()
         scores = creatThreadPool(population, bias, train_index, test_index)
+        timefitness2 = time.time()
+        timefitness.append(timefitness2-timefitness1)
 
         scoresfinalGA.append(scores[np.argmax(scores)])
         chromofinaisGA.append(population[np.argmax(scores)])
 
     tempototalfimGA = time.time()
 
-    return scoresfinalGA, chromofinaisGA, tempototalfimGA - tempototalinicioGA
+    return scoresfinalGA, chromofinaisGA, tempototalfimGA - tempototalinicioGA,timefitness
 
 def creatThreadPool(pesos,bias,train_index,test_index):
 
@@ -175,6 +183,7 @@ def experimentosdistribuido(imagesnoclass, imagesclass, ite,iteKfold,popu,kvalue
 
     cont = 0
     timeGA = []
+    timefitnessarray = []
 
     k = KFold(kvalue, True, 1)
 
@@ -184,9 +193,10 @@ def experimentosdistribuido(imagesnoclass, imagesclass, ite,iteKfold,popu,kvalue
 
             pesos,bias = np.array(creatpopuMSRA(popu, 306))
 
-            scoresfinalGA, _, timetotalGA = GArun(pesos,bias, ite, train_index,test_index)
+            scoresfinalGA, _, timetotalGA,timefitness = GArun(pesos,bias, ite, train_index,test_index)
             print(scoresfinalGA)
             timeGA.append(timetotalGA)
+            timefitnessarray.append(timefitness)
 
             print("end")
 
@@ -196,17 +206,21 @@ def experimentosdistribuido(imagesnoclass, imagesclass, ite,iteKfold,popu,kvalue
 
     sendaviso()
 
-    return timeGA
+    return timeGA,timefitnessarray
 
 X,Y = loadcsv()
 
 time1 = time.time()
-timemedioGA = experimentosdistribuido(X,Y,10,2,20,10)
+timemedioGA,timefitness= experimentosdistribuido(X,Y,10,2,20,10)
 time2 = time.time()
 
 print("Tempo total GA")
-print(timemedioGA)
+print(np.sum(timemedioGA))
 print("Tempo medio GA")
 print(np.mean(timemedioGA))
 print("Tempo total experimento distribuido")
 print(time2-time1)
+print("Tempo total fitness")
+print(np.sum(timefitness))
+print("Tempo medio fitness")
+print(np.mean(timefitness))

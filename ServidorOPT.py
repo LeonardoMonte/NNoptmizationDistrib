@@ -6,7 +6,7 @@ import socket
 import json
 from json import JSONDecodeError
 
-model = MLPClassifier(hidden_layer_sizes=(6),activation='relu',solver='lbfgs',max_iter=20)
+model = MLPClassifier(hidden_layer_sizes=(6),activation='relu',solver='lbfgs',max_iter=100)
 
 def loadcsv():
 
@@ -75,7 +75,7 @@ def wait(s,noclasse,classe):
                 score.append(fitnessGA(p,b,X_train,y_train,X_test,y_test))
 
             save.append(score)
-            print(score)
+            #print(score)
             data = json.dumps({"back":score})
             conn.send(data.encode())
 
@@ -84,16 +84,15 @@ def wait(s,noclasse,classe):
 
             template = "An exception of type {0} occurred. Arguments:\n{1!r}"
             message = template.format(type(ex).__name__, ex.args)
-            print(message)
-            print(len(save[0]))
+            #print(message)
+            #print(len(save[0]))
             data = json.dumps({"back":save[0]})
             conn.send(data.encode())
-            #wait(s, noclasse, classe)
 
     conn.close()
 
 
 
 noclasse,classe = loadcsv()
-s = startconec(1000, 5001, '192.168.43.206')
+s = startconec(99999, 5001, '192.168.43.206')
 wait(s,noclasse,classe)

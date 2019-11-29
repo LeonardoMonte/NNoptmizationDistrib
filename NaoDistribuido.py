@@ -123,27 +123,35 @@ def fitnessGA(chromossome,bias, Xtrain, ytrain, Xval, yval):
 def GArun(population,bias, ite, Xtrain, ytrain, Xval, yval):
 
     tempototalinicioGA = time.time()
+    timefitness = []
     scoresGA = []
     scoresfinalGA = []
     chromofinaisGA = []
 
+    timefitnessinicio = time.time()
     for popu,bia in zip(population,bias):
         scoresGA.append(fitnessGA(popu,bia, Xtrain, ytrain, Xval, yval))
+    timefitnessfim = time.time()
 
+    timefitness.append(timefitnessfim-timefitnessinicio)
     for x in range(ite):
 
         population = newgentournement(scoresGA, population)
         scoresGA = []
 
+        timefitnessinicio = time.time()
         for popu, bia in zip(population, bias):
             scoresGA.append(fitnessGA(popu, bia, Xtrain, ytrain, Xval, yval))
+        timefitnessfim = time.time()
+
+        timefitness.append(timefitnessfim - timefitnessinicio)
 
         scoresfinalGA.append(scoresGA[np.argmax(scoresGA)])
         chromofinaisGA.append(population[np.argmax(scoresGA)])
 
     tempototalfimGA = time.time()
 
-    return scoresfinalGA, chromofinaisGA, tempototalfimGA - tempototalinicioGA
+    return scoresfinalGA, chromofinaisGA, tempototalfimGA - tempototalinicioGA,timefitness
 
 def experimentos(imagesnoclass, imagesclass, ite, itekfold, popu, kvalue):
 
@@ -153,7 +161,7 @@ def experimentos(imagesnoclass, imagesclass, ite, itekfold, popu, kvalue):
     # popu = Tamanho da população
 
     timeGA = []  # Array para salvar os tempos de execução dos Algoritmos
-
+    timefitnessarray = []
     k = KFold(kvalue, True, 1)  # Instancia da classe Kfold com k = 10
 
     for x in range(itekfold):  # For da quantidade de vezes que ira ser executado o cross validation de k = 10
@@ -172,25 +180,29 @@ def experimentos(imagesnoclass, imagesclass, ite, itekfold, popu, kvalue):
 
             ###### GA ########################
 
-            scoresfinalGA, _, timetotalGA = GArun(pesos, bias, ite, X_train, y_train, X_test, y_test)
+            scoresfinalGA, _, timetotalGA,timefitness = GArun(pesos, bias, ite, X_train, y_train, X_test, y_test)
             print(scoresfinalGA)
             timeGA.append(timetotalGA)  # de iterações declaradas no inicio
-
+            timefitnessarray.append(timefitness)
             print("end")
 
         imagesnoclass, imagesclass = shuffle(imagesnoclass, imagesclass,
                                              random_state=cont)  # Depois que termina as 10 iterações de um Kfold dou shuffle
         cont += 1
 
-    return timeGA
+    return timeGA,timefitness
 
 X,Y = loadcsv()
 time1 = time.time()
-timemedioGA = experimentos(X,Y,70,2,10,10)
+timemedioGA,timefitness = experimentos(X,Y,70,2,10,10)
 time2 = time.time()
 print("tempo total dos experimentos")
 print(time2-time1)
 print("Time medio GA")
 print(np.mean(timemedioGA))
 print("Time total GA")
-print(timemedioGA)
+print(np.sum(timemedioGA))
+print("Tempo total de fitness")
+print(np.sum(timefitness))
+print("Tempo fitness médio")
+print(np.mean(timefitness))
